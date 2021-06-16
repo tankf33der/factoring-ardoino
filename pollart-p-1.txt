@@ -1,0 +1,52 @@
+It is a number theoretic integer factorization algorithm, invented by John Pollard in 1974. It is a special-purpose algorithm, meaning that it is only suitable for integers with specific types of factors; it is the simplest example of an algebraic-group factorisation algorithm.
+
+From Wikipedia
+
+Pollard p-1 algorithm
+
+    N > 2
+    b = ( a finite integer )
+    Let k be a multiple of all (or nearly all) integers <= b ( i.e k = b )
+    2 <= a <= N – 2 ( with a random )
+    Compute Greatest Common Divisor (GCD) between a^k-1(mod N) and N
+        So we need to comput a^k-1 in ZN and to find the Greatest Common Divisor between this value and N ( i.e : use the Euclid’s algorithm )
+    If GCD = 1 then return to 4. ; else if GCD > 1 then GCD is a prime number and we found a factor of N
+
+
+Pollard p-1 method implementation
+
+The following program need GMP (GNU Multi Precision) library
+Compile: gcc pollard-p-1.c -o pollard-p-1 -lgmp -lm
+
+Pollard p-1 algorithm source code
+
+Results of the Pollard p-1
+
+HARDWARE :
+CPU model name : AMD Athlon(TM) XP 2000+
+CPU MHz : 1666.240
+CPU cache size : 256 KB
+CPU bogomips : 3322.67
+RAM MB : 512 MB
+RAM MHz : 266 MHz
+
+SOFTWARE :
+Operative System : Gentoo GNU/Linux [kernel v2.6.2]
+spmi.c : my implementation of the Pollard p-1 Method
+
+RESULTS :
+N[integer to factorize]: 3369738766071892021 [2^64]
+b = 10
+Factor: 204518747
+Factor: 16476429743
+Factorization has been completed in 352-355 seconds.
+
+N[integer to factorize]: 15236506168104630133 [2^64]
+b = 10
+Factor: 993427735919
+Factor: 15337307
+Factorization has been completed in 22 seconds.
+
+69319838167205913708637865377
+1026727872351803 * 67515297903059
+

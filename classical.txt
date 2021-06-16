@@ -1,0 +1,56 @@
+RSA strength depends on the difficulty to find prime factors of large integers and this is why these kind of algorithms gain a lot of attention.
+Take an RSA key of 512 bits [ RSA-512 ]….
+
+The GNFS (Generalize Number Field Sieve) algorithm needed 2 months and 10 days to be completed:
+
+    2 months for the sieving part on 300 PC 400 MHz with 64Mb di RAM ( for an equivalent of 8000
+    MIPS-Year )
+    10 days on a Cray C90 to compute the matrix
+
+Having t = ( time to compute 2^512 )
+A simple calculus shows that we neeed:
+
+    LOG(2^576) / LOG(2^512) = 10.9 -> 10.9 * t for a 576 bits RSA key
+    LOG(2^1024) / LOG(2^512) = 7 * 10^6 * t for a 1024 bits RSA key
+    LOG(2^2048) / LOG(2^512) = 9 * 10^15 * t for a 2048 bits RSA key
+
+As we can see from this results, time required for a 2048 bits key is near the eternity;
+even if we have 10^6 computers time required to compute a 2048 bits key is 9 * 10^9 bigger
+than time required for a 512 bits key… so it is out of our possibilities.
+
+Note that the best algorithm for integer factorization is NFS ( Number Field Sieve ).
+
+Now we’ll take a look to the classical ( and slowest ) method for integers factorization to understand the complexity of this problem.
+
+Classical method algorithm
+
+    N >= 2
+    S = square root of N ( we take only the integer part )
+    Divide N / K (with K odd , K > 1 and K < S)
+        If K is a divisor of N we have found a prime factor of N and then N = N / K Restart from 2.
+
+Classical method implementation
+
+The following program need GMP (GNU Multi Precision) library
+Compile: gcc classical.c -o classical -lgmp
+Classical factoring algorithm source code
+
+Results of classical method
+
+HARDWARE :
+CPU model name : AMD Athlon(TM) XP 2000+
+CPU MHz : 1666.240
+CPU cache size : 256 KB
+CPU bogomips : 3322.67
+RAM MB : 512 MB
+RAM MHz : 266 MHz
+
+SOFTWARE :
+Operative System : Gentoo GNU/Linux [kernel v2.6.2]
+cfmi.c : my implementation of the classical method
+
+RESULTS :
+N[integer to factorize]: 3369738766071892021 [2^64]
+Factor: 204518747
+Factor: 16476429743
+Factorization has been completed in 1115-1142 seconds.

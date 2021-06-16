@@ -1,0 +1,488 @@
+
+[This article appeared on OndaQuadra0A Elettronic Magazine]
+Fondamenti di Matematica - Algoritmi Fondamentali
+Metodo delle curve ellittiche per la fattorizzazione
+di numeri interi.
+by Paolo Ardoino AKA binduck < paolo.ardoino@gmail.com >
+< http://ardoino.com >
+
+Prima di passare al prossimo algoritmo per la riduzione in fattori
+primi di un numero, conviene spiegare alcuni concetti matematici
+e alcuni algoritmi che stanno alla base delle operazioni tra numeri
+interi composti da molte cifre.
+N.B. Questi sono solo riassunti basilari e molto semplici, che potete
+consultare per avere un idea delle nozioni che sono richieste negli
+articoli matematico-informatici. Per una completa visione di questi
+leggete testi di matematica e algoritmi.
+Mi raccomando ricordate che la matematica e' molto importante se
+volete tuffarvi nel campo della crittografia.
+Le implementazioni degli algoritmi presentati in questo articolo
+possono essere facilmente trovate in ogni libreria matematica per
+qualsiasi linguaggio di programmazione.
+
+0] Notazione usata
+
+1] Concetti fondamentali
+
+1.1] Matematica
+1.1.1] Strutture algebriche
+1.1.2] Gruppo
+1.1.3] Anello
+1.1.4] Campo
+1.1.5] Aritmetica modulare
+1.1.6] Piccolo teorema di Fermat
+
+1.2] Informatica
+1.2.1] Calcolabilita' e complessita' di un algoritmo
+1.2.2] Rappresentazione numerica di un messaggio
+1.2.3] Rappresentazione di un messaggio in Zn
+
+2] Algoritmi fondamentali
+2.1] Test di primalita' e teorema di Fermat
+2.1.1] Probabilistic primality test
+2.2] Numeri random
+2.2.1] Linear congruential method
+2.3] Massimo comun divisore GCD
+
+3] Elliptic Curve Method
+
+
+0]
++ Somma
+- Sottrazione
+/ Divisione
+* Moltiplicazione
+^ Elevamento a potenza
+% Resto della divisione
+mod Modulo
+= Assegnamento
+== Uguaglianza
+> Maggiore
+< Minore
+>= Maggiore uguale
+
+<= Minore uguale
+/= Diverso
+|x| Valore assoluto di x
+° Operatore di composizione
+[A1..Ax] Elementi da 1 a x
+=> Allora
+<=> Se e solo se
+@ Per ogni
+E Appartenenza
+t.c. Tale che
+-] Esiste
+idA Identitita' in A
+log(n) Logaritmo in base due di n
+Log(n) Logaritmo in base dieci di n
+lim(x -> +inf) f(x)
+  si legge: limite per x che tende a piu' infinito di f(x)
+GCD(a, b) Massimo comun divisore tra a e b
+LCM(a, b) Minimo comune multiplo tra a e b
+
+1] Concetti fondamentali
+In questa sezione verranno spiegati in modo molto basilare alcuni
+concetti matematici necessari.
+
+1.1.1] Strutture algebriche
+Dato un insieme A una operazione binaria interna e' una legge che ad ogni
+coppia del prodotto cartesiano AxA fa corrispondere univocamente un
+elemento di A.
+
+1.1.2] Gruppi
+Un gruppo (G, *) ha un'operazione interna * ed e' un insieme che
+soddisfa le proprieta':
+-proprieta' associativa P @ a,b,c E G, (a*b)*c == a * (b * c)
+-ha l'elemento neutro @ a E G, uG * a == a * uG == a [dove uG e'
+l'elemento neutro]
+-ha l'inverso @ a E G, -] b E G t.c. a * b == b * a = uG
+
+Dato un gruppo (G, *) se a * b == b * a , @ a, b E G allora G e' un
+gruppo commutativo o gruppo abeliano.
+
+1.1.3] Anelli
+Un anello (A, +, *) ha due operazioni interne una denotata additivamente
+e l'altra moltiplicativamente; gli anelli sono:
+-un gruppo abeliano rispetto alla somma [prima operazione]
+-il prodotto [seconda operazione] gode della proprieta' associativa
+-proprieta' distributiva a * (b + c) == a * b + a * c ,
+(a + b) * c == a * c + b * c
+
+Un anello si dice commutativo se il prodotto [seconda operazione] gode
+della proprieta' commutativa. Se esiste un elemento neutro rispetto al
+prodotto allora l'anello ha un'identita'.
+
+1.1.4] Campi
+Un campo (C, +, *) ha due operazione interne, come nel caso dell'anello
+una denotata additivamente e una denotata moltiplicamente.
+-C e' un gruppo moltiplicativo.
+-la seconda operazione e' distributiva rispetto alla prima.
+
+1.1.5] Artimetica modulare
+L'aritmetica modulare studia i resti delle divisioni aritmetiche.
+X e' il divisendo, m e' il divisore, Q e' il quoziente e R e' il resto.
+(X mod m) = R si legge X modulo m e' uguale a R.
+Esempi:
+5 mod 3 = 2 infatti m * Q + R == X -> 3 * 1 + 2 == 5
+31 mod 43 = 31 infatti 43 * 0 + 31 == 31
+
+Possiamo dire che R < m, infatti 0 < R < m - 1
+
+(X mod 1) == 0 -> un qualsiasi numero modulo 1 e' sempre uguale a 0.
+(0 mod m) == 0 -> 0 modulo qualsiasi numero e' sempre uguale a 0.
+(X + Y) (mod m) == X(mod m) + Y(mod m) -> il resto di una somma e'
+uguale alla somma dei resti.
+(X * Y) (mod m) == X(mod m) * Y(mod m) -> il resto di un prodotto e'
+uguale al prodotto dei resti. Quest'ultima equivalenza ci sara' utile
+nella determinazione dei resti in divisioni tra numeri composti da
+molte cifre poiche' ci dice che:
+(X^2)(mod m) == X(mod m) * X(mod m) == R^2
+
+1.1.6] Piccolo teorema di Fermat
+Cosa ci dice il piccolo teorema di Fermat?
+p divide a^(p - 1) - 1, quando p e' primo e a e' primo con p [non hanno
+divisori comuni].
+Una generalizzazione che puo' seguire da questa forma e': presi due
+numeri interi positivi m, n con m == n allora a^n == a^m (mod p).
+[Utilizzato per la dimostrazione dell'algoritmo RSA].
+
+1.2] Informatica
+
+1.2.1] Calcolabilita' e complessita' di un algoritmo
+Calcolabilita': e' possibile scrivere un algoritmo per risolvere il
+problema?
+
+Complessita': sapendo che il problema e' calcolabile, quanto e'
+complesso? Per valutare la complessita' ci interessiamo del tempo
+di calcolo (tralaciamo quindi lo spazio di memoria occupato).
+La complessita' viene calcolata tenendo conto di tutte le operazioni
+algebriche e logiche, accesso in lettura e scrittura, etc...
+Nelle nostre valutazioni, comunque, partiremo dal presupposto che la
+macchina che eseguira' l'algoritmo sara' una macchina ideale, un
+calcolatore astratto che non tenga conto delle prestazioni hardware.
+Per poter descrivere la complessita' di un algoritmo e' necessario
+conoscere gli ordini di grandezza: teta, omega, O.
+Prendiamo ora due funzioni f e g, diremo che:
+f e' O(g) se f cresce al piu' come g, quindi g e' il limite superiore.
+f e' omega(g) se f cresce almeno come g, quindi g e' il limite
+inferiore.
+f e' teta(g) se f cresce come g, quindi f ha lo stesso ordine di
+grandezza di g.
+Per il concetto di limite, lim (x -> +inf) f(x)/g(x) == c
+Se c /= 0 => f e' teta(g) e quindi g e' teta(f)
+Se c == 0 => f e' O(g)
+Un esempio potrebbe essere: questo algoritmo ha complessita' O(log n),
+questo vuol dire che ha complessita' log in base 2 di n.
+
+Negli algoritmi ci puo' essere un'istruzione dominante allora accade che
+riducendo la complessita' di questa, la complessita' dell'intero
+algoritmo cali vertiginosamente.
+
+Il metodo migliore per valutare la complessita' di un codice e' quello
+di spezzarlo in blocchi e analizzare l'ordine di grandezza di ogni
+singolo blocco.
+
+Esempio di calcolo della complessita':
+{
+int n, i, p;
+scanf("%d", &n);
+for(i = 0, p = 0; i < n; i++) { p++; }
+}
+La complessita' di questo blocco e' O(n). Questa potrebbe crescere
+inserendo una nuova operazione di complessita' maggiore.
+
+1.2.2] Rappresentazione numerica di un messaggio
+N.B QUESTO PARAGRAFO E QUELLO SULLA RAPPRESENTAZIONE DEI NUMERI IN Zn
+sono fondamentali per la comprensione della maggior parte degli
+algoritmi di crittografia.
+
+Supponiamo per esempio che un messaggio sia composto solo dalle 21
+lettere dell'alfabeto italiano piu' lo spazio. Quindi con i numeri
+compresi tra 0 e 21 possiamo indicare ogni carattere.
+Dati m blocchi, quanti blocchi possiamo codificare col nostro
+insieme di 22 caratteri? 22^m; quindi possiamo indicare ogni blocco
+identificandolo tra 0 e (22^m) - 1.
+Prendiamo per esempio un blocco [A1..Am], indichiamo con i numeri
+[X1..Xm] corrispondenti alle lettere A1..Am e indichiamo il blocco
+col numero risultante.
+Piu' precisamente con il metodo illustrato qui sotto otteniamo che ogni
+blocco sia indicato univocamente:
+x = 22^(m - 1) * X1 + 22^(m - 2) * X2 + ... + 22^1 * X(m - 1) + Xm
+Il processo e' ovviamente invertibile, infatti possiamo ricavare
+[X1..Xm] e quindi [A1..Am]. Prendiamo il nostro x e dividiamolo per 22,
+il resto ottenuto da questa divisione sara' Xm. Ora dividiamo il
+quoziente (Q) della divisione per 22 e otteniamo X(m - 1) e cosi' via.
+
+1.2.3] Rappresentazione di un messaggio in Zn
+N.B QUESTO PARAGRAFO E' FONDAMENTALE PER LA COMPRENSIONE DELLA
+MAGGIOR PARTE DEGLI ALGORITMI DI CRITTOGRAFIA.
+[Questo paragrafo e' in parte un riassunto, semplificato della Ref.2]
+[In questo paragrafo e' necessaria la parte di aritmetica modulare]
+Una volta trovato il numero di simboli del nostro alfabeto (22 nel
+paragrafo precente), genericamente n, possiamo indicare con Zn
+l'insieme dei numeri compresi tra 0 e n - 1. Di qui possiamo arrivare
+a scrivere una funzione f:Zn -> Zn che ad ogni blocco di m caratteri di
+Zn associa un nuovo blocco in Zn; questo procedimento rende possibile
+l'operazione inversa (descrittazione) f^-1.
+Una condizione necessaria su f perche' questa sia invertibile e' che
+sia iniettiva, cioe' che a ogni elemento del dominio ne associ uno e
+uno solo dell'immagine; se la condizione non fosse necessaria allora
+non potremmo scrivere una funzione che decritta univocamente i blocchi
+crittati.
+Matematicamente una funzione si dice iniettiva se:
+f(x) == f(x') <=> x == x'
+
+Una funzione f e' invertibile se e solo se e' iniettiva.
+
+La condizione di invertibilita' si esprime in questo modo:
+Presi due elementi x E X, y E Y sia f una funzione da X a Y,
+allora esiste una funzione f^-1 da Y a X se e solo se
+f^-1(f(x)) = x  e f(f^-1(y)) = y
+L'invertibilita' puo' essere scritta anche cosi':
+g ° f = idA e f ° g = idB
+[In generale: f ° g == f(g)]
+
+**EQUIVALENZA**
+Definiamo ora l'operatore di equivalenza o conguenza in Zn
+a == b (mod n).
+Detto piu' semplicemente se pensiamo a Zn come ad un insieme di
+numeri consecutivi, prendiamo due numeri a, b E Zn.
+**SOMMA**
+Se a + b < n allora possiamo prendere come risultato della somma
+a + b.
+Se a + b >= n allora dobbiamo sottrarre n poiche' sforeremo
+dall'insieme Zn dato che dovremmo considerare numeri piu' grandi di n
+che non possono essere dentro l'insieme.
+Quindi se ripensiamo all'equivalenza un n + 1 == 1 in Zn, n + 2 == 2
+in Zn, etc...
+L'operazione di riduzione si effettua per passare da un generico numero
+al suo corrispondente in Zn.
+Esempio:
+3 + 5 == 2 in Z6, poiche' 8 (mod 6) == 2
+**PRODOTTO**
+Ovviamente tutto cio' che abbiamo detto finora per la somma vale allo
+stesso modo per il prodotto.
+a * b = c (mod n)
+**OPPOSTO**
+Ogni x E Zn ammette opposto, che e' semplicemente il numero congruente
+a -x in Zn cosicche' x + (-x) == 0, poiche' 0 e' l'elemento neutro della
+somma.
+Esempio:
+In Z8, l'inverso di 5 e' 3, infatti 5 + 3 == 8 == 0
+**INVERSO**
+Per quanto riguarda l'inverso dobbiamo riferirci all'elemento neutro del
+prodotto che e' 1, infatti x * x^-1 == 1.
+Non tutti gli elementi di Zn quindi ammettono inverso. Prendiamo ad
+esempio in Z5 il numero 2; bene il suo inverso sara' 3, poiche'
+2 * 3 == 6 == 1.
+Mentre 2 non ha inverso in Z6, dato che ogni numero moltiplicato per 2
+da' come risultato un numero pari, mentre l'inverso dovrebbe essere
+dispari.
+In generale possiamo riassumere che un numero ha inverso in Zn se e solo
+se GCD(x, n) == 1.
+Di conseguenza se n e' primo (cioe' divisibile solo per uno e per se
+stesso) allora ogni numero tranne 0 ammette inverso, e Zn definito
+queste operazioni di somma e prodotto e' un campo; al contrario se
+n non e' primo esiste almeno un numero in Zn che non ha inverso e
+Zn e' un anello.
+
+2] Algoritmi fondamentali
+Quali caratteristiche deve avere un algoritmo?
+a) Finito: deve terminare dopo un numero finito di passi.
+b) Definito: essendo i computer delle macchine deterministiche, ogni
+passo dell'algoritmo deve essere definito precisamente.
+c) Input: 0 o piu' valori in input.
+d) Output: 1 o piu' output.
+e) Realizzabilita': tutte le operazioni usate nell'algoritmo devono
+poter essere fattibili anche da un uomo su carta.
+
+Un algoritmo si dice computazionalmente trattabile se esiste un
+algoritmo efficiente che lo risolva.
+Un algoritmo si dice efficiente se esiste una funzione che lo limita
+superiormente.
+
+2.1] Test di primalita' e teorema di Fermat
+Secondo quanto ci dice il teorema di Fermat x^(p-1) mod p == 1
+se p e' primo e x non e' multiplo di p; quando questa relazione non e'
+verificata allora p e' composto.
+Servono quindi solo O(log n) moltiplicazioni mod n per verificare il
+teorema di Fermat. Comunque per n molto grandi i calcoli diventano
+molto costosi in termini di tempo e risorse.
+
+2.1.1] Test probailistico di primalita'
+Il test probabilistico di primalita' in p e' fondamentale per
+controllare in modo veloce, e comunque affidabile, se un intero e'
+primo oppure composto (e quindi riducibile in fattori primi :)).
+0] Prendiamo un numero intero n dispari
+(ovviamente se e' pari avra' almeno un fattore, 2);
+1] Sia n = 1 + (2^k) * q
+(q sara' dispari)
+2] Scegliamo un x casuale tale che 1 < x < n
+3] Sia j = 0 e y = (x^q) mod n
+(questo calcolo richiede O(log q) passi)
+4] Se j == 0 e y == 1, oppure y == n - 1 allora n e' probabilemte primo
+Se j > 0 and y == 1 saltiamo al passo 6.
+Altrimenti proseguiamo.
+5] j = j + 1
+Se j < k allora y = (y^2) mod n e ritorniamo al passo 4.
+Altrimenti proseguiamo.
+6] n e' sicuramente composto.
+
+L'algoritmo in se, computato una singola volta ha una probabilita' pari
+a 1/4 di fallire; per ottenere una maggiore sicurezza e' possibile
+ripetere l'algoritmo r volte, cosi' che la probabilita' di fallimento
+sia di (1/4)^r. Pensiamo quindi di ripetere l'algoritmo un numero
+finito di volte, ad esempio 100, la probabilita' che il nostro
+algoritmo fallisca sara' di (1/4)^100, praticamente 0.
+
+[Questo test e' il piu' gettonato ed e' implementato in tutte le
+librerie matematiche (vedi ad esempio GNU Multi Precision e la libreria
+matematica di OpenSSL) per il fatto che e' veloce ed affidabile.]
+
+2.2] Numeri random
+Un numero random, e' un numero scelto a caso; scrivere un algoritmo
+che fornisca una buona fonte di numeri primi non e' affatto semplice.
+Algoritmi come il supe-rrandom number generator sono obsoleti e
+convergono in modo molto veloce e questo ci insegna che per generare
+numeri random non si dovrebbe usare metodi casuali, ma invece bisogna
+basarsi sulla teoria matematica.
+Una fonte di numeri casuali nei sistemi GNU/Linux e' /dev/random.
+In C possiamo per ottenere numeri random e' sufficiente appoggiarsi
+a due funzioni contenute nella stdlib, che sono la srand(), che permette
+di settare il random seed e la rand() che ci restituisce un intero
+casuale compreso tra 0 e RAND_MAX.
+#define    RAND_MAX        2147483647
+Ovviamente la sequenza di numeri casuali e' riottenibile reinserendo
+il lo stesso seed in srand().
+Un esempio di inizializzazione potrebbe essere srand(time(NULL));.
+
+2.2.1] Linear congruential method
+Per generare numeri casuali uniformemente distribuiti tra 0 e 1 si
+utilizza prevaletentemente il linear conguential method.
+In questo documento mostro solo l'idea alla base dell'algoritmo.
+Si scelgano 4 numeri:
+m modulo t.c m > 0
+a moltiplicatore t.c 0 <= a < m
+c incrementatore t.c 0 <= c < m
+Xo valore di partenza t.c 0 <= Xo < m
+
+La sequenza di numeri casuali Xn seguira da:
+X(n + 1) = (a*Xn + c) mod m
+(n >= 0)
+Ovviamente per scegliere i 4 numeri di partenza ci son dei metodi che
+ci permettono di scegliere dei buoni valori.
+
+2.3] Massimo comun divisore GCD
+[GCD == Great Commin Divisor]
+In questa sezione vedremo oltre l'aspetto matematico del massimo comun
+divisore anche l'algoritmo per il calcolo.
+Dati due numeri a, b il massimo comun divisore GCD(a, b) e' numero piu'
+grande che li divide entrambe. Vediamo ora alcune proprieta' del GCD.
+GCD(0, 0) == 0
+GCD(u, v) == GCD(v, u)
+GCD(u, v) == GCD(-u, v)
+GCD(u, 0) == |u|
+
+L'algoritmo di Euclide ci permette di trovare il massimo comun divisore
+senza prima trovare i fattori primi di u e v.
+Poniamo sempre a sinistra l'intero maggiore.
+
+Vediamo prima l'algoritmo originale:
+0] Siano A e C due interi > 1 calcolarne il GCD
+1] Se A > C e C divide A => C e' il GCD(A, C)
+2] (A mod C) == 1 allora A e C son primi tra loro, quindi
+   l'algoritmo termina. Altrimenti (A mod C) > 1, calcoliamo il
+   GCD(C, A mod C).
+Questo algoritmo da vita quindi a una procedura ricorsiva.
+
+Ora invece vediamo un'implementazione moderna dell'algoritmo.
+0] Siano u e v due interi >= 0 calcolare GCD(u, v)
+1] Se v == 0 allora GCD(u, v) == u
+2] r = u mod v, u = v, v = r; ritorniamo al punto 1].
+
+Esistono altri algoritmi per il calcolo del GCD [come il binary gcd
+algorithm], e quindi si potrebbe continuare a parlare del massimo
+comun divisore per pagine e pagine, ma direi che per rendere l'idea
+i due descritti son piu' che sufficienti.
+
+3] Elliptic Curve Method
+
+L'idea che sta alla base dell'algoritmo di Lenstra e' quella di
+sfruttare delle curve ellittiche, scelte casualmente, per svolgere
+dei tentativi di fattorizzazione, e ognuno di questi ha una probabilita'
+non nulla di trovare un fattore primo di N.
+Inanzitutto vediamo come e' fatta una curva ellittica, la cui equazione
+e': y^2 = x^3 + a*x + b
+Da questo possiamo dedurre che una curve ellittica e' un grafico di
+una cubica (terzo grado) [non bisogna confondersi con l'ellisse].
+Le curve ellittiche son funzioni continue il che ci permette di
+costruire operazioni binarie tra i suoi vari punti in un modello
+geometrico naturale, il che trasforma l'insieme di punti in gruppo
+abeliano.
+Le CE possono essere definite su qualsiasi campo k.
+L'algoritmo e' un miglioramento dell'algoritmo Pollard p-1 ed era il
+metodo piu' veloce per trovare i fattori primi di un intero prima
+del Generalized Number Field Sieve. Comunque e' ancora l'algoritmo
+piu' veloce per interi inferiore a 64 bits [20 cifre].
+Il miglioramento consiste nel fatto che l'algoritmo di Lenstra
+considera il gruppo di una curva ellittica casuale su un campo finito
+Zp [con p primo], il quale ha sempre ordine p - 1. Invece l'ordine
+del gruppo della CE su Zp varia casualmente tra  p e 2p.
+
+0]
+Sia n il nostro intero da ridurre in fattori primi.
+
+1]
+Scegliamo una curva ellittica C: y^2 = x^3 + a*x + b, tale che a e b
+appartengano a Z (insieme dei numeri interi).
+Scegliamo poi un punto P(x, y).
+Sia la scelta di C che la scelta di P dovranno essere pseudo-casuali.
+[Se noi fallissimo il tentativo di fattorizzazione con la coppia (C,P)
+scelta ora dovremmo sceglierne un'altra a caso.]
+
+2]
+Verifichiamo ora che il massimo comun divisore GCD(4a^3 + 27b^2, n) == 1
+Se questa condizione e' vera abbiamo la conferma che la curve da noi
+scelta e' riducibile mod p. Questo vuol dire che, preso un primo p,
+possiamo considerare i coefficienti dell'equazione della curva modulo p
+se e solo se questi sono primi con p.
+[GCD(K,Z) leggasi massimo comun divisore tra K e Z]
+Se 1 < GCD(4a^3 + 27b^2, n) < n allora abbiamo trovato un divisore non
+banale di n, quindi abbiamo trovato un fattore primo di n. Ogni volta
+che si verifica questa condizione possiamo dividere n per il fattore
+trovato e continuare la scomposizione in fattori primi.
+Se, invece, troviamo che il risultato del massimo comun divisore e'
+uguale ad n allora dobbiamo generare una nuova coppia (C,P).
+
+3]
+Prendiamo un intero k tale che questo sia il prodotto di tutti i
+numeri primi minori di un certo b scelto a caso.
+Assumiamo per facilitare le operazioni di calcolo che b sia inferiore
+a un intero a 4 byte senza segno.
+Ora e' sufficiente trovare tutti i primi inferiori di questo b e
+moltiplicarli, cosicche' k sia multiplo di ognuno di loro.
+Si calcoli kP nel gruppo, con il metodo delle potenze veloci, modulo n.
+kP e' uno zero della curva ellittica nel gruppo Zp [dove p e' un
+divisore primo di n], ma non e' uno zero nel gruppo Zq [dove q e' un
+altro divisore di n, con q /= p]. A questo punto possiamo trovare un
+fattore di n computando il GCD(xP, n) [dove xP e' la prima coordinata
+del punto P].
+
+4] Se il procedimento fallisce e' necessario ripartire con una nuova
+coppia (C, P).
+
+Un'implementazione decente dell'algoritmo e' gmp-ecm di Paul Zimmermann
+and Alexander Kruppa.
+[Il codice dell'SECMI (Simple Elliptic Curve Method Implementation) che
+trovate sul mio sito e' una semplice reimplementazione di quello scritto
+da Rihard Brent, che dava dei problemi con alcuni numeri e poteva essere
+velocizzato].
+
+Per qualsiasi chiarimento scrivetemi a paolo.ardoino@gmail.com
+Ciao
+
+Riferimenti:
+*1 - The art of computer programming Vol. 1 - 2
+*2 - Appunti di crittografia di Giovanni Alberti
+*3 - Libri e appunti vari di matematica
+
